@@ -38,7 +38,7 @@ export default function Login() {
       <input
         id="email"
         name="email"
-        type="email"
+        type="text"
         autoComplete="username"
         required
         value={email}
