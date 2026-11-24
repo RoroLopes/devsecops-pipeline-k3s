@@ -1,0 +1,54 @@
+on:
+  pull_request:
+    branches: [dev]
+
+jobs:
+  sast:
+    name: CodeQL Analysis
+    runs-on: ubuntu-24.04
+
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    strategy:
+        fail-fast: false
+        matrix:
+          include:
+            - language: 'go'
+              build-mode: 'default'
+            - language: 'javascript-typescript'
+              build-mode: 'default'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: ${{ matrix.language }}
+
+  secretsleak:
+    name: Secrets Leak Detection using gitleak
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use gitleak action
+        uses: gitleaks/gitleaks-action@v3
