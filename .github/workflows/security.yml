@@ -20,8 +20,10 @@ jobs:
           include:
             - language: 'go'
               build-mode: 'autobuild'
+              output: 'go-scan-results.sarif'
             - language: 'javascript-typescript'
               build-mode: 'none'
+              output: 'js-ts-scan-results.sarif'
 
     steps:
       - name: Checkout repository
@@ -37,6 +39,13 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: ${{ matrix.language }}
+          output: ${{ matrix.output }}
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.language }}-scan-results
+          path: ${{ matrix.output }}
 
   secretsleak:
     name: Secrets Leak Detection using gitleak
