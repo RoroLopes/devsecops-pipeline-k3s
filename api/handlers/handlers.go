@@ -1,8 +1,11 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
-import "api/database/models"
-import "api/database"
+import (
+	"github.com/gin-gonic/gin"
+	"api/database/models"
+	"api/database"
+	"fmt"
+)
 
 func RegisterRoutes(router *gin.Engine) {
 	// Define your API routes here
@@ -31,19 +34,20 @@ func RegisterRoutes(router *gin.Engine) {
 	})
 	router.POST("/api/auth/login", func(c *gin.Context) {
 		body := &models.User{}
+		var user models.User
 		if err := c.ShouldBindJSON(body); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 		} else {
-			// Check if the user exists in the database
-			var user models.User
-			result := database.InitDB().DB.Where("email = ? AND password = ?", body.Email, body.Password).First(&user)
+			query := fmt.Sprintf("SELECT * FROM users WHERE Email = '%s' AND Password = '%s'", body.Email, body.Password)
+			result := database.InitDB().DB.Raw(query).First(&user)
 			if result.Error != nil {
-				c.JSON(401, gin.H{"error": "Invalid email or password"})
+				c.JSON(401, gin.H{"error": result.Error.Error()})
 				return
 			}
 		}
 		c.JSON(200, gin.H{
 			"message": "User logged in successfully",
+			"user": user,
 		})
 	})
 }
